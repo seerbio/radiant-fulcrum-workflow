@@ -17,7 +17,13 @@ You can then directly run the ``pythia_scry`` command from the terminal:
 
 .. code :: shell
 
-    pythia_scry --library /path/to/library.tsv --fasta /path/to/database.fasta file1.mzML file2.mzML
+    pythia_scry --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.pythiaConfig file1.mzML file2.mzML
+
+For a full list of arguments, run:
+
+.. code :: shell
+
+    pythia_scry --help
 
 Scry Workflow
 -------------
@@ -32,12 +38,15 @@ in TOML or JSON format. For example:
     workflow = "pythia"
     library = "/path/to/library.tsv"
     fasta = "/path/to/database.fasta"
+    config = "/path/to/config.pythiaConfig"
 
     mzml = [
         "file1.mzML",
         "file2.mzML",
     ]
     '
+
+For a full list of supported parameters, see :py:func:`scry_pythia_workflow.workflow.pythia`.
 
 Contents
 ========
