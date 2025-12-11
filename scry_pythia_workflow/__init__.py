@@ -1,1 +1,1 @@
-from workflow import pythia
+from .workflow import pythia

@@ -70,7 +70,7 @@ def pythia(
     kwargs :
         Any additional keyword arguments to pass to the underlying workflow (either `v1` or `mbr`).
     """
-    updated_config = check_or_update_config(config, threads)
+    updated_config = check_or_update_config(config, threads, results_dir)
 
     params = (to_mbr_params if mbr else to_libfree_params)(
         library=library,
