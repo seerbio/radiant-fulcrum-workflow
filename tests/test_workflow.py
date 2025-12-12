@@ -7,6 +7,7 @@ from pathlib import Path
 from scry_pythia_workflow.workflow import (
     _check_or_create_results_dir,
     _check_or_update_config,
+    _get_default_pythia_config,
 )
 
 
@@ -107,6 +108,64 @@ def test_default_config(tmp_path, threads, fdr):
     results_dir.mkdir()
 
     result = _check_or_update_config(None, threads, fdr, str(results_dir))
+
+    assert result is not None
+
+    config_path = Path(result)
+
+    assert config_path.exists()
+    assert config_path == (results_dir / "config.pythiaConfig")
+
+    with config_path.open("r") as f:
+        config = toml.load(f, dotdict)
+
+    assert config.General.threadCount == (
+        threads if threads and threads > 0 else 0
+    )
+    assert config.FdrParams.percentFdr == 100 * (
+        fdr if fdr is not None else 0.01
+    )
+
+
+@pytest.fixture()
+def custom_config(tmp_path) -> str:
+    default_config = _get_default_pythia_config()
+
+    p = tmp_path / "config.pythiaConfig"
+
+    with p.open("w") as f:
+        toml.dump(default_config, f)
+
+    return str(p)
+
+
+@pytest.mark.parametrize(
+    "threads",
+    [
+        None,
+        -1,
+        0,
+        8,
+    ],
+)
+@pytest.mark.parametrize(
+    "fdr",
+    [
+        None,
+        0.01,
+        0.05,
+    ],
+)
+def test_custom_config(tmp_path, threads, fdr):
+    """
+    Test that providing None as config_uri creates a default config in results_dir
+    """
+    results_dir = tmp_path / "results"
+    results_dir.mkdir()
+
+    result = _check_or_update_config(
+        custom_config, threads, fdr, str(results_dir)
+    )
 
     assert result is not None
 

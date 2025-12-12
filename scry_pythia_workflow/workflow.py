@@ -190,14 +190,8 @@ def _check_or_update_config(
     Otherwise, copies the configuration to ``results_dir`` and returns its URI.
     """
     if config_uri is None:
-        default_config = (
-            _resource_files("scry_pythia_workflow")
-            / "data"
-            / "default.pythiaConfig"
-        )
+        config = _get_default_pythia_config()
 
-        with default_config.open("r") as f:
-            config = _toml.load(f, _dotdict)
         config.setdefault("General", _dotdict()).threadCount = (
             threads if threads and threads > 0 else 0
         )
@@ -212,3 +206,16 @@ def _check_or_update_config(
         return str(newconfig)
 
     raise NotImplementedError("TODO")
+
+
+def _get_default_pythia_config():
+    default_config = (
+        _resource_files("scry_pythia_workflow")
+        / "data"
+        / "default.pythiaConfig"
+    )
+
+    with default_config.open("r") as f:
+        config = _toml.load(f, _dotdict)
+
+    return config
