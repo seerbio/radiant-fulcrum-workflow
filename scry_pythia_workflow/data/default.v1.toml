@@ -1,0 +1,77 @@
+workflow = 'v1'
+
+[airpot]
+backend = 'none'
+
+[cortado]
+backend = 'blocking_mixmax'
+block_relative_error = 0.0001
+desc = true
+num_blocks = 50000
+pep_fdr_type = 'psm-precursor'
+score_column = 'ClassifierScore'
+
+[cortado.errprob_kwargs]
+decoy_ratio = 1.0
+
+[cortado.pi0_kwargs]
+subset_size = 20000
+
+[output]
+backend = 'write_parquet'
+include_decoys = true
+mode = 'overwrite'
+qval_thresh = 0.01
+
+[peptide_output]
+location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/scry_peptides/'
+
+[peptide_quant]
+backend = 'basic'
+intensity_column = 'TotalIntensityRaw'
+sample_column = 'filename'
+
+[peptide_quant.normalization]
+backend = 'mediandense'
+density_thresh = 0.8
+qval_thresh = 0.01
+
+[proffer]
+fasta_uri = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
+heuristic = 'nsp'
+qvalue_threshold = 0.01
+reannotate = true
+
+[proffer.reannotate_kwargs]
+decoy_accession_prefix = 'DECOY_'
+decoy_sequence_column = 'PeptideStringWithModsDecoyOrigin'
+reannotate_decoys = true
+
+[protein_output]
+location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/scry_proteins/'
+
+[protein_rollup]
+backend = 'directlfq'
+qvalue_threshold = 0.01
+
+[protein_scoring]
+assign_confidence = true
+rollup_level = 'precursor'
+
+[protein_scoring.confidence_kwargs]
+desc = false
+score_column = 'nsp'
+
+[search]
+backend = 'pythia'
+config = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/pythia_config.pythiaConfig'
+fasta = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
+library = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Libraries/20250501_NR_9606_lib.predicted.speclib'
+location = ['/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep01.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep02.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep03.mzML']
+output_location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/pythia_results/'
+reuse_existing = false
+scoring = 'nn'
+
+[spark_config]
+'spark.driver.memory' = '51g'
+'spark.master' = 'local[30]'

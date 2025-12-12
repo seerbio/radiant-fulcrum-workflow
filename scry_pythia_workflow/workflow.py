@@ -230,13 +230,13 @@ def _set_config_fields(config, threads, fdr):
 
 
 def _get_default_pythia_config():
-    default_config = (
-        _resource_files("scry_pythia_workflow")
-        / "data"
-        / "default.pythiaConfig"
-    )
+    return _read_default_toml("default.pythiaConfig")
 
-    with default_config.open("r") as f:
-        config = _toml.load(f, _dotdict)
 
-    return config
+def _read_default_toml(fname):
+    loc = _resource_files("scry_pythia_workflow") / "data" / fname
+
+    with loc.open("r") as f:
+        params = _toml.load(f, _dotdict)
+
+    return params
