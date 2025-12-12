@@ -13,13 +13,35 @@ pip install 'scry-pythia-workflow[local]'
 
 ## Basic Usage  
 
+After [installation](#installation), you can directly run the `pythia_scry` command from the terminal:
+
+```shell
+pythia_scry --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.pythiaConfig file1.mzML file2.mzML
+```
+
+For a full list of arguments, run:
+
+```shell
+pythia_scry --help
+```
+
+## Advanced Usage with Scry
+
 This package provides plugins for [Scry](https://github.com/seerbio/scry/).
 
-After [installing `scry-pythia-workflow`](#installation) you may use the
+After [installation](#installation) you may use the
 following Scry parameters:
 
 ```toml
 workflow = "pythia"
+library = "/path/to/library.tsv"
+fasta = "/path/to/database.fasta"
+config = "/path/to/config.pythiaConfig"
 
-# TODO: describe additional options
+mzml = [
+"file1.mzML",
+"file2.mzML",
+]
 ```
+
+For a complete list of supported parameters, see the project's documentation (linked in the sidebar above).
