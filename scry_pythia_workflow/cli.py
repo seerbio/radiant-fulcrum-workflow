@@ -29,7 +29,7 @@ def _check_config(ctx, param, value):
     name="pythia_scry",
     help="""
     CLI for running Pythia within the Scry search pipeline.
-    """
+    """,
 )
 @click.option(
     "--library",

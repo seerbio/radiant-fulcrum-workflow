@@ -159,7 +159,9 @@ def _create_results_dir() -> str:
             candidate.mkdir()
             return str(candidate)
         index += 1
-    raise RuntimeError("Could not create a new results directory after 100 attempts.")
+    raise RuntimeError(
+        "Could not create a new results directory after 100 attempts."
+    )
 
 
 def _check_or_update_config(
@@ -180,11 +182,17 @@ def _check_or_update_config(
     Otherwise, copies the configuration to ``results_dir`` and returns its URI.
     """
     if config_uri is None:
-        default_config = _resource_files("scry_pythia_workflow") / "data" / "default.pythiaConfig"
+        default_config = (
+            _resource_files("scry_pythia_workflow")
+            / "data"
+            / "default.pythiaConfig"
+        )
 
         with default_config.open("r") as f:
             config = _toml.load(f, _dotdict)
-        config.setdefault("General", _dotdict()).threadCount = threads if threads and threads > 0 else 0
+        config.setdefault("General", _dotdict()).threadCount = (
+            threads if threads and threads > 0 else 0
+        )
 
         newconfig = _Path(results_dir) / "config.pythiaConfig"
         with newconfig.open("w") as f:

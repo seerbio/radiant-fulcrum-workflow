@@ -4,7 +4,10 @@ import toml
 from dotdict import dotdict
 from pathlib import Path
 
-from scry_pythia_workflow.workflow import _check_or_create_results_dir, _check_or_update_config
+from scry_pythia_workflow.workflow import (
+    _check_or_create_results_dir,
+    _check_or_update_config,
+)
 
 
 @pytest.fixture()
@@ -73,7 +76,7 @@ def test_check_results_dir():
         -1,
         0,
         8,
-    ]
+    ],
 )
 def test_default_config(tmp_path, threads):
     """
@@ -94,4 +97,6 @@ def test_default_config(tmp_path, threads):
     with config_path.open("r") as f:
         config = toml.load(f, dotdict)
 
-    assert config.General.threadCount == (threads if threads and threads > 0 else 0)
+    assert config.General.threadCount == (
+        threads if threads and threads > 0 else 0
+    )
