@@ -21,7 +21,7 @@ subset_size = 20000
 backend = 'write_parquet'
 include_decoys = true
 mode = 'overwrite'
-qval_thresh = 0.01
+qval_thresh = 1.0
 
 [peptide_output]
 location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/scry_peptides/'

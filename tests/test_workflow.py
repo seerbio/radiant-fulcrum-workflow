@@ -8,6 +8,8 @@ from scry_pythia_workflow.workflow import (
     _check_or_create_results_dir,
     _check_or_update_config,
     _get_default_pythia_config,
+    _to_libfree_params,
+    _to_mbr_params,
 )
 
 
@@ -182,4 +184,101 @@ def test_custom_config(tmp_path, custom_config, threads, fdr):
     )
     assert config.FdrParams.percentFDR == 100 * (
         fdr if fdr is not None else 0.01
+    )
+
+
+@pytest.mark.parametrize(
+    "mzml",
+    [
+        "/path/to/file.mzML",
+        ["/path/to/file1.mzML", "/path/to/file2.mzML"],
+    ],
+)
+@pytest.mark.parametrize("fdr_thresh", [None, 0.01, 0.05])
+def test_to_libfree_params(tmp_path, mzml, fdr_thresh):
+    results_dir = str(tmp_path / "results")
+    params = _to_libfree_params(
+        library="/path/to/lib.speclib",
+        fasta="/path/to/fasta.fasta",
+        mzml=mzml,
+        fdr_thresh=fdr_thresh,
+        config="/path/to/config.pythiaConfig",
+        results_dir=results_dir,
+    )
+
+    assert params.search.library == "/path/to/lib.speclib"
+    assert params.search.fasta == "/path/to/fasta.fasta"
+    assert params.search.location == (
+        mzml if isinstance(mzml, list) else [mzml]
+    )
+    assert params.search.config == "/path/to/config.pythiaConfig"
+    assert params.search.output_location == str(
+        tmp_path / "results" / "pythia_results"
+    )
+
+    assert params.proffer.fasta_uri == "/path/to/fasta.fasta"
+    assert params.proffer.qvalue_threshold == (fdr_thresh or 0.01)
+
+    assert params.protein_rollup.qvalue_threshold == (fdr_thresh or 0.01)
+
+    assert params.output.qval_thresh == (fdr_thresh or 1.0)
+    assert params.peptide_output.location == str(
+        tmp_path / "results" / "scry_peptides"
+    )
+    assert params.protein_output.location == str(
+        tmp_path / "results" / "scry_proteins"
+    )
+
+
+@pytest.mark.parametrize(
+    "mzml",
+    [
+        "/path/to/file.mzML",
+        ["/path/to/file1.mzML", "/path/to/file2.mzML"],
+    ],
+)
+@pytest.mark.parametrize("fdr_thresh", [None, 0.01, 0.05])
+def test_to_mbr_params(tmp_path, mzml, fdr_thresh):
+    results_dir = str(tmp_path / "results")
+    params = _to_mbr_params(
+        library="/path/to/lib.speclib",
+        fasta="/path/to/fasta.fasta",
+        mzml=mzml,
+        fdr_thresh=fdr_thresh,
+        config="/path/to/config.pythiaConfig",
+        results_dir=results_dir,
+    )
+
+    expected_mzml = mzml if isinstance(mzml, list) else [mzml]
+
+    assert params.library.search.library == "/path/to/lib.speclib"
+    assert params.library.search.fasta == "/path/to/fasta.fasta"
+    assert params.library.search.location == expected_mzml
+    assert params.library.search.config == "/path/to/config.pythiaConfig"
+    assert params.library.search.output_location == str(
+        tmp_path / "results" / "pythia_firstpass_results"
+    )
+    assert params.library.output.location == str(
+        tmp_path / "results" / "pythia_lib-mbr.tsv"
+    )
+    assert params.library.output.qval_thresh == (fdr_thresh or 0.01)
+
+    assert params.search.fasta == "/path/to/fasta.fasta"
+    assert params.search.location == expected_mzml
+    assert params.search.config == "/path/to/config.pythiaConfig"
+    assert params.search.output_location == str(
+        tmp_path / "results" / "pythia_results"
+    )
+
+    assert params.proffer.fasta_uri == "/path/to/fasta.fasta"
+    assert params.proffer.qvalue_threshold == (fdr_thresh or 0.01)
+
+    assert params.protein_rollup.qvalue_threshold == (fdr_thresh or 0.01)
+
+    assert params.output.qval_thresh == (fdr_thresh or 1.0)
+    assert params.peptide_output.location == str(
+        tmp_path / "results" / "scry_peptides"
+    )
+    assert params.protein_output.location == str(
+        tmp_path / "results" / "scry_proteins"
     )

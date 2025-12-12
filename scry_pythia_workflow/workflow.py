@@ -63,7 +63,9 @@ def pythia(
     mzml : str|Iterable[str]
         URI or list of URIs of mzML files to search.
     fdr_thresh : float, optional
-        FDR threshold between (0 and 1) used for filtering PSMs, Precursors, and PGs. Default: 0.01.
+        FDR threshold between (0 and 1) used for filtering PSMs, Precursors, and PGs.
+        Note: if unspecified the default value (0.01) will be used for all workflow steps, but output will
+        be written unfiltered.
     config : str, optional
         URI of a Pythia configuration file (TOML format). If ``None``, default
         configuration will be used.
@@ -86,6 +88,10 @@ def pythia(
         config, threads, fdr_thresh, results_dir
     )
 
+    # TODO: handle **kwargs
+    if kwargs:
+        raise NotImplementedError("TODO: handle keyword parameter overrides")
+
     params = (_to_mbr_params if mbr else _to_libfree_params)(
         library=library,
         fasta=fasta,
@@ -97,7 +103,7 @@ def pythia(
 
     workflow = _mbr_workflow if mbr else _v1_workflow
 
-    return workflow(**params, spark=spark, **kwargs)
+    return workflow(**params, spark=spark)
 
 
 def _to_mbr_params(
@@ -111,7 +117,43 @@ def _to_mbr_params(
     """
     Generate necessary parameters for running the MBR workflow.
     """
-    raise NotImplementedError("TODO")
+    params = _read_default_toml("default.mbr.toml")
+
+    if isinstance(mzml, str):
+        mzml = [mzml]
+    else:
+        mzml = list(mzml)
+
+    results_path = _Path(results_dir)
+
+    params.library.search.library = library
+    params.library.search.fasta = fasta
+    params.library.search.location = mzml
+    params.library.search.config = config
+    params.library.search.output_location = str(
+        results_path / "pythia_firstpass_results"
+    )
+    params.library.output.location = str(results_path / "pythia_lib-mbr.tsv")
+    if fdr_thresh is not None:
+        params.library.output.qval_thresh = fdr_thresh
+
+    params.search.fasta = fasta
+    params.search.location = mzml
+    params.search.config = config
+    params.search.output_location = str(results_path / "pythia_results")
+
+    params.proffer.fasta_uri = fasta
+
+    if fdr_thresh is not None:
+        params.proffer.qvalue_threshold = fdr_thresh
+        params.protein_rollup.qvalue_threshold = fdr_thresh
+
+    params.peptide_output.location = str(results_path / "scry_peptides")
+    params.protein_output.location = str(results_path / "scry_proteins")
+    if fdr_thresh is not None:
+        params.output.qval_thresh = fdr_thresh
+
+    return params
 
 
 def _to_libfree_params(
@@ -125,7 +167,30 @@ def _to_libfree_params(
     """
     Generate necessary parameters for running the library-free (``v1``) workflow.
     """
-    raise NotImplementedError("TODO")
+    params = _read_default_toml("default.v1.toml")
+
+    if isinstance(mzml, str):
+        mzml = [mzml]
+    else:
+        mzml = list(mzml)
+
+    params.search.library = library
+    params.search.fasta = fasta
+    params.search.location = mzml
+    params.search.config = config
+    params.search.output_location = str(_Path(results_dir) / "pythia_results")
+
+    params.proffer.fasta_uri = fasta
+    if fdr_thresh is not None:
+        params.proffer.qvalue_threshold = fdr_thresh
+        params.protein_rollup.qvalue_threshold = fdr_thresh
+
+    params.peptide_output.location = str(_Path(results_dir) / "scry_peptides")
+    params.protein_output.location = str(_Path(results_dir) / "scry_proteins")
+    if fdr_thresh is not None:
+        params.output.qval_thresh = fdr_thresh
+
+    return params
 
 
 def _check_or_create_results_dir(
