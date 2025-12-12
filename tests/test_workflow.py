@@ -91,14 +91,22 @@ def test_check_results_dir(request, dir_fixture):
         8,
     ],
 )
-def test_default_config(tmp_path, threads):
+@pytest.mark.parametrize(
+    "fdr",
+    [
+        None,
+        0.01,
+        0.05,
+    ],
+)
+def test_default_config(tmp_path, threads, fdr):
     """
     Test that providing None as config_uri creates a default config in results_dir
     """
     results_dir = tmp_path / "results"
     results_dir.mkdir()
 
-    result = _check_or_update_config(None, threads, str(results_dir))
+    result = _check_or_update_config(None, threads, fdr, str(results_dir))
 
     assert result is not None
 
@@ -112,4 +120,7 @@ def test_default_config(tmp_path, threads):
 
     assert config.General.threadCount == (
         threads if threads and threads > 0 else 0
+    )
+    assert config.FdrParams.percentFdr == 100 * (
+        fdr if fdr is not None else 0.01
     )

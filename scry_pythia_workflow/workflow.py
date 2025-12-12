@@ -174,17 +174,18 @@ def _create_results_dir() -> str:
 def _check_or_update_config(
     config_uri: _Union[str, None],
     threads: _Union[int, None],
+    fdr: _Union[float, None],
     results_dir: str,
 ) -> str:
     """
-    Check that the given configuration is valid and agrees with the given number of ``threads``.
+    Check that the given configuration is valid and agrees with the given number of ``threads`` and FDR cutoff.
 
     If the configuration is ``None``, creates a default configuration in ``results_dir`` and returns its URI.
 
     If the configuration is unreadable or invalid, raises an error.
 
-    If the configuration is valid but has a different number of threads than ``threads``, creates a
-    new configuration file in ``results_dir`` with the updated number of threads and returns its URI.
+    If the configuration is valid but has a different number of threads than ``threads`` or different FDR than ``fdr``,
+    creates a new configuration file in ``results_dir`` with the updated parameters and returns its URI.
 
     Otherwise, copies the configuration to ``results_dir`` and returns its URI.
     """
@@ -199,6 +200,9 @@ def _check_or_update_config(
             config = _toml.load(f, _dotdict)
         config.setdefault("General", _dotdict()).threadCount = (
             threads if threads and threads > 0 else 0
+        )
+        config.setdefault("FdrParams", _dotdict()).percentFdr = 100 * (
+            fdr if fdr is not None else 0.01
         )
 
         newconfig = _Path(results_dir) / "config.pythiaConfig"
