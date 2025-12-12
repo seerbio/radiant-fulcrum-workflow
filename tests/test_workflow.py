@@ -55,18 +55,31 @@ def test_create_results_dir(tmp_workingdir):
 
 
 @pytest.fixture()
-def valid_results_dir(tmp_path):
+def valid_results_dir(tmp_path) -> str:
     results_dir = tmp_path / "results"
+    return str(results_dir)
+
+
+@pytest.fixture()
+def extant_results_dir(valid_results_dir) -> str:
+    results_dir = Path(valid_results_dir)
     results_dir.mkdir()
-    return results_dir
+    return str(results_dir)
 
 
-@pytest.mark.xfail(reason="Not Implemented")
-def test_check_results_dir():
+@pytest.mark.parametrize(
+    "dir_fixture", ["valid_results_dir", "extant_results_dir"]
+)
+def test_check_results_dir(request, dir_fixture):
     """
     Test checking a valid results directory
     """
-    raise NotImplementedError("TODO")
+    input = request.getfixturevalue(dir_fixture)
+    results_dir = _check_or_create_results_dir(input)
+
+    assert results_dir == input
+    assert Path(results_dir).is_dir()
+    assert Path(results_dir).exists()
 
 
 @pytest.mark.parametrize(

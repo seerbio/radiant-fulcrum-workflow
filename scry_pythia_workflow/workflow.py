@@ -139,7 +139,14 @@ def _check_or_create_results_dir(
         _logger.info("results_dir not provided; will use %s", newdir)
         return newdir
 
-    raise NotImplementedError("TODO")
+    results_path = _Path(results_dir)
+
+    if results_path.exists() and not results_path.is_dir():
+        raise ValueError(f"results_dir '{results_dir}' is not a directory.")
+
+    results_path.mkdir(parents=True, exist_ok=True)
+
+    return results_dir
 
 
 def _create_results_dir() -> str:
