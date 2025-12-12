@@ -80,7 +80,7 @@ def _check_config(ctx, param, value):
     metavar="THREADS",
 )
 @click.option(
-    "--result-dir",
+    "--results-dir",
     type=click.Path(
         file_okay=False,
         dir_okay=True,
@@ -126,7 +126,7 @@ def main(
     CLI for running Pythia within the Scry search pipeline.
     """
 
-    params_dict = dict(
+    params_dict = _to_parameters(
         library,
         fasta,
         config,
