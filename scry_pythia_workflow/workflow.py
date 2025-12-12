@@ -36,7 +36,7 @@ def pythia(
     library: str,
     fasta: str,
     mzml: _Union[str, _Iterable[str]],
-    fdr_thresh: _Optional[float] = 0.01,
+    fdr_thresh: _Optional[float] = None,
     config: _Optional[str] = None,
     mbr: _Optional[bool] = False,
     threads: int = 0,
@@ -110,7 +110,7 @@ def _to_mbr_params(
     library: str,
     fasta: str,
     mzml: _Union[str, _Iterable[str]],
-    fdr_thresh: float,
+    fdr_thresh: _Union[float, None],
     config: str,
     results_dir: str,
 ) -> _Mapping[str, _Any]:
@@ -160,7 +160,7 @@ def _to_libfree_params(
     library: str,
     fasta: str,
     mzml: _Union[str, _Iterable[str]],
-    fdr_thresh: float,
+    fdr_thresh: _Union[float, None],
     config: str,
     results_dir: str,
 ) -> _Mapping[str, _Any]:
