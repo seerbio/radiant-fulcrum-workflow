@@ -12,7 +12,7 @@ on:
   - cron: "0 0 1 1/1 *" # Run monthly
 
 jobs:
-  build:
+  tests:
     runs-on: [self-hosted, X64]
 #    runs-on: ${{ matrix.os }}
 #    strategy:
