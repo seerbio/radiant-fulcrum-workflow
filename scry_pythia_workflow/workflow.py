@@ -63,7 +63,7 @@ def pythia(
     mzml : str|Iterable[str]
         URI or list of URIs of mzML files to search.
     fdr_thresh : float, optional
-        FDR threshold used for filtering PSMs, Precursors, and PGs. Default: 0.01.
+        FDR threshold between (0 and 1) used for filtering PSMs, Precursors, and PGs. Default: 0.01.
     config : str, optional
         URI of a Pythia configuration file (TOML format). If ``None``, default
         configuration will be used.
@@ -82,7 +82,9 @@ def pythia(
     """
     results_dir = _check_or_create_results_dir(results_dir)
 
-    updated_config = _check_or_update_config(config, threads, results_dir)
+    updated_config = _check_or_update_config(
+        config, threads, fdr_thresh, results_dir
+    )
 
     params = (_to_mbr_params if mbr else _to_libfree_params)(
         library=library,
@@ -188,24 +190,43 @@ def _check_or_update_config(
     creates a new configuration file in ``results_dir`` with the updated parameters and returns its URI.
 
     Otherwise, copies the configuration to ``results_dir`` and returns its URI.
+
+    Parameters
+    ----------
+    config_uri : str|None
+        URI of a Pythia configuration file (TOML format). If ``None``, a default configuration will be used.
+    threads : int|None
+        Number of threads to use when running Pythia. If ``None``, no change will be made to the configuration.
+    fdr : float|None
+        FDR threshold (between 0 and 1) used for filtering PSMs, Precursors, and PGs. If ``None``, no change will be
+        made to the configuration.
+    results_dir : str
+        Directory to write the updated configuration file to.
     """
     if config_uri is None:
         config = _get_default_pythia_config()
+    else:
+        config_path = _Path(config_uri)
+        if not config_path.exists():
+            raise ValueError(f"config '{config_uri}' does not exist.")
 
-        config.setdefault("General", _dotdict()).threadCount = (
-            threads if threads and threads > 0 else 0
-        )
-        config.setdefault("FdrParams", _dotdict()).percentFdr = 100 * (
-            fdr if fdr is not None else 0.01
-        )
+        with config_path.open("r") as f:
+            config = _toml.load(f, _dotdict)
 
-        newconfig = _Path(results_dir) / "config.pythiaConfig"
-        with newconfig.open("w") as f:
-            _toml.dump(config, f)
+    _set_config_fields(config, threads, fdr)
 
-        return str(newconfig)
+    newconfig = _Path(results_dir) / "config.pythiaConfig"
+    with newconfig.open("w") as f:
+        _toml.dump(config, f)
 
-    raise NotImplementedError("TODO")
+    return str(newconfig)
+
+
+def _set_config_fields(config, threads, fdr):
+    if threads and threads > 0:
+        config.setdefault("General", _dotdict()).threadCount = threads
+    if fdr is not None:
+        config.setdefault("FdrParams", _dotdict()).percentFDR = 100 * fdr
 
 
 def _get_default_pythia_config():

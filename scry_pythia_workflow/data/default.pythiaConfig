@@ -9,7 +9,7 @@ skipScanCount = 3
 [General]
 reannotate = false
 shortReport = false
-threadCount = 32
+threadCount = 0
 verbosity = 0
 
 [LibraryParams]

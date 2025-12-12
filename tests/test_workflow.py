@@ -122,7 +122,7 @@ def test_default_config(tmp_path, threads, fdr):
     assert config.General.threadCount == (
         threads if threads and threads > 0 else 0
     )
-    assert config.FdrParams.percentFdr == 100 * (
+    assert config.FdrParams.percentFDR == 100 * (
         fdr if fdr is not None else 0.01
     )
 
@@ -156,7 +156,7 @@ def custom_config(tmp_path) -> str:
         0.05,
     ],
 )
-def test_custom_config(tmp_path, threads, fdr):
+def test_custom_config(tmp_path, custom_config, threads, fdr):
     """
     Test that providing None as config_uri creates a default config in results_dir
     """
@@ -180,6 +180,6 @@ def test_custom_config(tmp_path, threads, fdr):
     assert config.General.threadCount == (
         threads if threads and threads > 0 else 0
     )
-    assert config.FdrParams.percentFdr == 100 * (
+    assert config.FdrParams.percentFDR == 100 * (
         fdr if fdr is not None else 0.01
     )
