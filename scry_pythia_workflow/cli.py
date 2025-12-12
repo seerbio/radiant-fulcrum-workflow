@@ -140,7 +140,7 @@ def main(
     param_toml = toml.dumps(params_dict)
     _logger.debug("Will run Scry with parameters:\n%s", param_toml)
 
-    scry_main(
+    scry_main.callback(
         param_toml=param_toml,
         verbose=verbose,
         quiet=quiet,
@@ -170,6 +170,12 @@ def _to_parameters(
         results_dir=results_dir,
         mzml=mzml_files,
         workflow="pythia",
+        spark_config={
+            # Enhancement: allow master to be set via CLI, to allow core count control or remote cluster
+            "spark.master": "local[*]",
+            # TODO: allow controlling driver memory
+            "spark.driver.memory": "8g",
+        },
     )
 
 

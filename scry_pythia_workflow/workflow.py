@@ -24,10 +24,9 @@ from wheely.mammoth.proteins import (
     ProteinDataset as _ProteinDataset,
 )
 
-from scry.workflow import (
-    mbr_workflow as _mbr_workflow,
-    v1 as _v1_workflow,
-)
+from scry.workflow.mbr import mbr_workflow as _mbr_workflow
+from scry.workflow.v1 import scry_v1 as _v1_workflow
+from scry.workflow.registry import get_workflow as _get_workflow
 
 _logger = _logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ def pythia(
         results_dir=results_dir,
     )
 
-    workflow = _mbr_workflow if mbr else _v1_workflow
+    workflow = _get_workflow(params.pop("workflow"))
 
     return workflow(**params, spark=spark)
 

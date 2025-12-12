@@ -71,7 +71,3 @@ location = ['/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP
 output_location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/pythia_results/'
 reuse_existing = false
 scoring = 'nn'
-
-[spark_config]
-'spark.driver.memory' = '51g'
-'spark.master' = 'local[30]'

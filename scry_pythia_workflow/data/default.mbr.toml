@@ -112,7 +112,3 @@ reuse_existing = false
 scoring = 'nn'
 use_irt = true
 use_library_location = true
-
-[spark_config]
-'spark.driver.memory' = '51g'
-'spark.master' = 'local[32]'
