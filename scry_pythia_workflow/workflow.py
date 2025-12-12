@@ -1,4 +1,6 @@
+from datetime import date as _date
 from importlib.resources import files as _resource_files
+import logging as _logging
 from typing import (
     Any as _Any,
     Iterable as _Iterable,
@@ -26,6 +28,8 @@ from scry.workflow import (
     mbr_workflow as _mbr_workflow,
     v1 as _v1_workflow,
 )
+
+_logger = _logging.getLogger(__name__)
 
 
 def pythia(
@@ -130,7 +134,32 @@ def _check_or_create_results_dir(
 
     If the given directory is invalid or not writable, raises an error.
     """
+    if results_dir is None:
+        newdir = _create_results_dir()
+        _logger.info("results_dir not provided; will use %s", newdir)
+        return newdir
+
     raise NotImplementedError("TODO")
+
+
+def _create_results_dir() -> str:
+    base_dir = _Path.cwd()
+
+    today = _date.today().isoformat()
+
+    candidate = base_dir / f"results-{today}"
+    if not candidate.exists():
+        candidate.mkdir()
+        return str(candidate)
+
+    index = 1
+    while index < 100:
+        candidate = base_dir / f"results-{today}-{index:d}"
+        if not candidate.exists():
+            candidate.mkdir()
+            return str(candidate)
+        index += 1
+    raise RuntimeError("Could not create a new results directory after 100 attempts.")
 
 
 def _check_or_update_config(
