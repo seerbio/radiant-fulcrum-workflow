@@ -32,15 +32,6 @@ from scry.workflow.registry import get_workflow as _get_workflow
 _logger = _logging.getLogger(__name__)
 
 
-class _my_dotdict(_dotdict):
-    """
-    Subclass of ``dotdict`` that supports deep copying.
-    """
-
-    def __deepcopy__(self, memo=None):
-        return _dotdict(_deepcopy(dict(self), memo=memo))
-
-
 def pythia(
     library: str,
     fasta: str,
@@ -90,16 +81,13 @@ def pythia(
         will be created with default configuration.
     kwargs :
         Any additional keyword arguments to pass to the underlying workflow (either `v1` or `mbr`).
+        Parameters passed in this way will override any defaults or those passed via other arguments!
     """
     results_dir = _check_or_create_results_dir(results_dir)
 
     updated_config = _check_or_update_config(
         config, threads, fdr_thresh, results_dir
     )
-
-    # TODO: handle **kwargs
-    if kwargs:
-        raise NotImplementedError("TODO: handle keyword parameter overrides")
 
     params = (_to_mbr_params if mbr else _to_libfree_params)(
         library=library,
@@ -109,6 +97,8 @@ def pythia(
         config=updated_config,
         results_dir=results_dir,
     )
+
+    params = _merge_recursive(params, kwargs)
 
     workflow = _get_workflow(params.pop("workflow"))
 
@@ -314,3 +304,49 @@ def _read_default_toml(fname):
         params = _toml.load(f, _my_dotdict)
 
     return params
+
+
+def _merge_recursive(a, b, _dict=dict):
+    """
+    Merge two dictionaries recursively, preferring values from ``b`` when keys overlap.
+    """
+    res = _dict()
+
+    for k, v in a.items():
+        ov = b.get(k, None)
+
+        if ov is not None:
+            if isinstance(v, dict) or isinstance(v, _dict):
+                assert isinstance(
+                    ov, dict
+                ), f"Value for `{k}` is not a dict! `{ov}`"
+
+                res[k] = _merge_recursive(v, ov, _dict=_dict)
+            elif isinstance(ov, dict) or isinstance(ov, _dict):
+                res[k] = _dict(ov)
+            else:
+                res[k] = ov
+        elif isinstance(v, dict) or isinstance(v, _dict):
+            res[k] = _dict(v)
+        else:
+            res[k] = v
+
+    for k, v in b.items():
+        if k in a:
+            continue
+
+        if isinstance(v, dict) or isinstance(v, _dict):
+            res[k] = _dict(v)
+        else:
+            res[k] = v
+
+    return res
+
+
+class _my_dotdict(_dotdict):
+    """
+    Subclass of ``dotdict`` that supports deep copying.
+    """
+
+    def __deepcopy__(self, memo=None):
+        return _dotdict(_deepcopy(dict(self), memo=memo))
