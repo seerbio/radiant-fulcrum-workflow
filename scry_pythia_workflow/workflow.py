@@ -100,6 +100,10 @@ def pythia(
 
     params = _merge_recursive(params, kwargs)
 
+    _logger.debug(
+        "Generated Pythia workflow parameters:\n%s", _toml.dumps(params)
+    )
+
     workflow = _get_workflow(params.pop("workflow"))
 
     return workflow(**params, spark=spark)
