@@ -10,6 +10,7 @@ from typing import (
     Union as _Union,
 )
 
+from copy import deepcopy as _deepcopy
 from dotdict import dotdict as _dotdict
 from pathlib import Path as _Path
 from pyspark.sql import (
@@ -29,6 +30,15 @@ from scry.workflow.v1 import scry_v1 as _v1_workflow
 from scry.workflow.registry import get_workflow as _get_workflow
 
 _logger = _logging.getLogger(__name__)
+
+
+class _my_dotdict(_dotdict):
+    """
+    Subclass of ``dotdict`` that supports deep copying.
+    """
+
+    def __deepcopy__(self, memo=None):
+        return _dotdict(_deepcopy(dict(self), memo=memo))
 
 
 def pythia(
@@ -275,7 +285,7 @@ def _check_or_update_config(
             raise ValueError(f"config '{config_uri}' does not exist.")
 
         with config_path.open("r") as f:
-            config = _toml.load(f, _dotdict)
+            config = _toml.load(f, _my_dotdict)
 
     _set_config_fields(config, threads, fdr)
 
@@ -288,9 +298,9 @@ def _check_or_update_config(
 
 def _set_config_fields(config, threads, fdr):
     if threads and threads > 0:
-        config.setdefault("General", _dotdict()).threadCount = threads
+        config.setdefault("General", _my_dotdict()).threadCount = threads
     if fdr is not None:
-        config.setdefault("FdrParams", _dotdict()).percentFDR = 100 * fdr
+        config.setdefault("FdrParams", _my_dotdict()).percentFDR = 100 * fdr
 
 
 def _get_default_pythia_config():
@@ -301,6 +311,6 @@ def _read_default_toml(fname):
     loc = _resource_files("scry_pythia_workflow") / "data" / fname
 
     with loc.open("r") as f:
-        params = _toml.load(f, _dotdict)
+        params = _toml.load(f, _my_dotdict)
 
     return params
