@@ -42,6 +42,7 @@ def pythia(
     threads: int = 0,
     results_dir: _Optional[str] = None,
     spark: _Optional[_SparkSession] = None,
+    overrides: _Optional[_Mapping[str, _Any]] = None,
     **kwargs,
 ) -> _Tuple[_PsmDataset, _ProteinDataset]:
     """
@@ -79,9 +80,15 @@ def pythia(
     spark : SparkSession, optional
         A Spark session to use when creating the search result dataset. If ``None`` a session
         will be created with default configuration.
+    overrides : dict, optional
+        Override arguments to pass to the underlying workflow (either `v1` or `mbr`).
+        Parameters passed in this way will override any defaults or those passed via other arguments.
+        Using this argument permits overriding any parameters that can not be set via ``kwargs`` due to
+        shadowing by other arguments to this function.
     kwargs :
         Any additional keyword arguments to pass to the underlying workflow (either `v1` or `mbr`).
-        Parameters passed in this way will override any defaults or those passed via other arguments!
+        Parameters passed in this way will override any defaults or those passed via other arguments (other
+        than ``overrides``).
     """
     results_dir = _check_or_create_results_dir(results_dir)
 
@@ -99,6 +106,9 @@ def pythia(
     )
 
     params = _merge_recursive(params, kwargs)
+
+    if overrides:
+        params = _merge_recursive(params, overrides)
 
     _logger.debug(
         "Generated Pythia workflow parameters:\n%s", _toml.dumps(params)
