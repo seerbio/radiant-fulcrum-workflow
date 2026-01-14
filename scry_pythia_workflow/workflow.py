@@ -25,6 +25,8 @@ from wheely.mammoth.proteins import (
     ProteinDataset as _ProteinDataset,
 )
 
+from scry.output import get_backend as _get_output_backend
+
 from scry.workflow.mbr import mbr_workflow as _mbr_workflow
 from scry.workflow.v1 import scry_v1 as _v1_workflow
 from scry.workflow.registry import get_workflow as _get_workflow
@@ -110,7 +112,9 @@ def pythia(
     else:
         overrides = kwargs
 
-    params = _configure_output(params, fdr_thresh, results_dir, overrides=overrides)
+    params = _configure_output(
+        params, fdr_thresh, results_dir, overrides=overrides
+    )
 
     params = _merge_recursive(params, overrides, _deepcopy_dotdict)
 
@@ -204,9 +208,11 @@ def _configure_output(
     params: _Mapping[str, _Any],
     fdr_thresh,
     results_dir,
-    overrides: _Mapping[str, _Any],
+    overrides: _Mapping[str, _Any] = None,
 ):
-    params = _dotdict(params)
+    params = _deepcopy_dotdict(params)
+    if overrides is None:
+        overrides = _deepcopy_dotdict()
 
     params.setdefault("output", _deepcopy_dotdict())
 
@@ -219,23 +225,29 @@ def _configure_output(
         output_backend = params.output.get("backend", None)
 
     if output_backend is None:
-        output_backend = "combined"
-        params.output["backend"] = output_backend
+        raise ValueError("No configured output backend!")
+
+    params.output.backend = output_backend
 
     combined_backends = {"combined"}
     separate_backends = {"write_csv", "write_parquet"}
     lib_backends = {"write_library"}
 
-    if output_backend in {
-        *combined_backends,
-        *map(_get_workflow, combined_backends),
-    }:
+    def is_backend(backends):
+        if output_backend in backends:
+            return True
+
+        for backend in combined_backends:
+            fn = _get_output_backend(backend)
+            if fn == output_backend:
+                return True
+
+        return False
+
+    if is_backend(combined_backends):
         # We will write only a single combined output dataset; set a single location
         params.output.location = str(_Path(results_dir) / "scry-results")
-    elif output_backend in {
-        *separate_backends,
-        *map(_get_workflow, separate_backends),
-    }:
+    elif is_backend(separate_backends):
         # We will write separate outputs for PSMs and proteins
         params.peptide_output.location = str(
             _Path(results_dir) / "scry_peptides"
@@ -243,7 +255,7 @@ def _configure_output(
         params.protein_output.location = str(
             _Path(results_dir) / "scry_proteins"
         )
-    elif output_backend in {*lib_backends, *map(_get_workflow, lib_backends)}:
+    elif is_backend(lib_backends):
         # This is not recommended; log a warning and configure a location (unless overridden)
         if "location" in overrides.get("output", {}):
             _logger.warning(
