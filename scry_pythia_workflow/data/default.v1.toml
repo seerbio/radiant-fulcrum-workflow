@@ -34,7 +34,7 @@ density_thresh = 0.8
 qval_thresh = 0.01
 
 [proffer]
-fasta_uri = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
+fasta_uri = '/tmp/fake.fasta'
 heuristic = 'nsp'
 qvalue_threshold = 0.01
 reannotate = true
@@ -58,10 +58,10 @@ score_column = 'nsp'
 
 [search]
 backend = 'pythia'
-config = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/pythia_config.pythiaConfig'
-fasta = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
-library = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Libraries/20250501_NR_9606_lib.predicted.speclib'
-location = ['/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep01.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep02.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep03.mzML']
-output_location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/pythia_results/'
+config = '/tmp/fake.pythiaConfig'
+fasta = '/tmp/fake.fasta'
+library = '/tmp/fake.tsv'
+location = []
+output_location = '/tmp/pythia-search-results/'
 reuse_existing = false
 scoring = 'nn'
