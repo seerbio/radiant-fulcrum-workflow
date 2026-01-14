@@ -105,12 +105,14 @@ def pythia(
         results_dir=results_dir,
     )
 
-    params = _configure_output(params, fdr_thresh, results_dir)
-
-    params = _merge_recursive(params, kwargs)
-
     if overrides:
-        params = _merge_recursive(params, overrides)
+        overrides = _merge_recursive(kwargs, overrides, _deepcopy_dotdict)
+    else:
+        overrides = kwargs
+
+    params = _configure_output(params, fdr_thresh, results_dir, overrides=overrides)
+
+    params = _merge_recursive(params, overrides, _deepcopy_dotdict)
 
     _logger.debug(
         "Generated Pythia workflow parameters:\n%s", _toml.dumps(params)
@@ -198,14 +200,77 @@ def _to_libfree_params(
     return params
 
 
-def _configure_output(params: _Mapping[str, _Any], fdr_thresh, results_dir):
+def _configure_output(
+    params: _Mapping[str, _Any],
+    fdr_thresh,
+    results_dir,
+    overrides: _Mapping[str, _Any],
+):
     params = _dotdict(params)
 
-    params.peptide_output.location = str(_Path(results_dir) / "scry_peptides")
-    params.protein_output.location = str(_Path(results_dir) / "scry_proteins")
+    params.setdefault("output", _deepcopy_dotdict())
 
     if fdr_thresh is not None:
         params.output.qval_thresh = fdr_thresh
+
+    output_backend = overrides.get("output", {}).get("backend", None)
+
+    if output_backend is None:
+        output_backend = params.output.get("backend", None)
+
+    if output_backend is None:
+        output_backend = "combined"
+        params.output["backend"] = output_backend
+
+    combined_backends = {"combined"}
+    separate_backends = {"write_csv", "write_parquet"}
+    lib_backends = {"write_library"}
+
+    if output_backend in {
+        *combined_backends,
+        *map(_get_workflow, combined_backends),
+    }:
+        # We will write only a single combined output dataset; set a single location
+        params.output.location = str(_Path(results_dir) / "scry-results")
+    elif output_backend in {
+        *separate_backends,
+        *map(_get_workflow, separate_backends),
+    }:
+        # We will write separate outputs for PSMs and proteins
+        params.peptide_output.location = str(
+            _Path(results_dir) / "scry_peptides"
+        )
+        params.protein_output.location = str(
+            _Path(results_dir) / "scry_proteins"
+        )
+    elif output_backend in {*lib_backends, *map(_get_workflow, lib_backends)}:
+        # This is not recommended; log a warning and configure a location (unless overridden)
+        if "location" in overrides.get("output", {}):
+            _logger.warning(
+                "Output backend 'write_library' is not recommended for Pythia workflow! "
+                "Proceeding with user-specified output location."
+            )
+        else:
+            _logger.warning(
+                "Output backend 'write_library' is not recommended for Pythia workflow! "
+                "Proceeding with default output location."
+            )
+            params.output.location = str(
+                _Path(results_dir) / "scry-output-library.tsv"
+            )
+    else:
+        # Unknown backend; log a warning and set a single location
+        if "location" in overrides.get("output", {}):
+            _logger.warning(
+                "Unknown output backend '%s'; proceeding with user-specified output location.",
+                output_backend,
+            )
+        else:
+            _logger.warning(
+                "Unknown output backend '%s'; setting a default output location",
+                output_backend,
+            )
+            params.output.location = str(_Path(results_dir) / "scry-results")
 
     return params
 
@@ -255,6 +320,15 @@ def _create_results_dir() -> str:
     )
 
 
+class _deepcopy_dotdict(_dotdict):
+    """
+    Subclass of ``dotdict`` that supports deep copying.
+    """
+
+    def __deepcopy__(self, memo=None):
+        return _deepcopy_dotdict(_deepcopy(dict(self), memo=memo))
+
+
 def _check_or_update_config(
     config_uri: _Union[str, None],
     threads: _Union[int, None],
@@ -293,7 +367,7 @@ def _check_or_update_config(
             raise ValueError(f"config '{config_uri}' does not exist.")
 
         with config_path.open("r") as f:
-            config = _toml.load(f, _my_dotdict)
+            config = _toml.load(f, _deepcopy_dotdict)
 
     _set_config_fields(config, threads, fdr)
 
@@ -306,20 +380,22 @@ def _check_or_update_config(
 
 def _set_config_fields(config, threads, fdr):
     if threads and threads > 0:
-        config.setdefault("General", _my_dotdict()).threadCount = threads
+        config.setdefault("General", _deepcopy_dotdict()).threadCount = threads
     if fdr is not None:
-        config.setdefault("FdrParams", _my_dotdict()).percentFDR = 100 * fdr
+        config.setdefault("FdrParams", _deepcopy_dotdict()).percentFDR = (
+            100 * fdr
+        )
 
 
 def _get_default_pythia_config():
     return _read_default_toml("default.pythiaConfig")
 
 
-def _read_default_toml(fname):
+def _read_default_toml(fname) -> _deepcopy_dotdict:
     loc = _resource_files("scry_pythia_workflow") / "data" / fname
 
     with loc.open("r") as f:
-        params = _toml.load(f, _my_dotdict)
+        params = _toml.load(f, _deepcopy_dotdict)
 
     return params
 
@@ -359,12 +435,3 @@ def _merge_recursive(a, b, _dict=dict):
             res[k] = v
 
     return res
-
-
-class _my_dotdict(_dotdict):
-    """
-    Subclass of ``dotdict`` that supports deep copying.
-    """
-
-    def __deepcopy__(self, memo=None):
-        return _dotdict(_deepcopy(dict(self), memo=memo))

@@ -18,13 +18,10 @@ decoy_ratio = 1.0
 subset_size = 20000
 
 [output]
-backend = 'write_parquet'
+backend = 'combined'
 include_decoys = true
 mode = 'overwrite'
 qval_thresh = 1.0
-
-[peptide_output]
-location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/scry_peptides/'
 
 [peptide_quant]
 backend = 'basic'
@@ -46,9 +43,6 @@ reannotate = true
 decoy_accession_prefix = 'DECOY_'
 decoy_sequence_column = 'PeptideStringWithModsDecoyOrigin'
 reannotate_decoys = true
-
-[protein_output]
-location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_libfree/scry_proteins/'
 
 [protein_rollup]
 backend = 'directlfq'
