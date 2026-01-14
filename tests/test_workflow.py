@@ -1,16 +1,22 @@
+import logging
 import pytest
 import toml
 
 from dotdict import dotdict
 from pathlib import Path
 
+from scry.output import get_backend as _get_output_backend
+
 from scry_pythia_workflow.workflow import (
     _check_or_create_results_dir,
     _check_or_update_config,
+    _configure_output,
     _get_default_pythia_config,
     _to_libfree_params,
     _to_mbr_params,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
@@ -221,14 +227,6 @@ def test_to_libfree_params(tmp_path, mzml, fdr_thresh):
 
     assert params.protein_rollup.qvalue_threshold == (fdr_thresh or 0.01)
 
-    assert params.output.qval_thresh == (fdr_thresh or 1.0)
-    assert params.peptide_output.location == str(
-        tmp_path / "results" / "scry_peptides"
-    )
-    assert params.protein_output.location == str(
-        tmp_path / "results" / "scry_proteins"
-    )
-
 
 @pytest.mark.parametrize(
     "mzml",
@@ -275,10 +273,55 @@ def test_to_mbr_params(tmp_path, mzml, fdr_thresh):
 
     assert params.protein_rollup.qvalue_threshold == (fdr_thresh or 0.01)
 
+
+@pytest.mark.parametrize("get_params", [_to_libfree_params, _to_mbr_params])
+@pytest.mark.parametrize("fdr_thresh", [None, 0.01, 0.05])
+def test_configure_output(tmp_path, get_params, fdr_thresh):
+    results_dir = str(tmp_path / "results")
+
+    params = _to_libfree_params(
+        library="/path/to/lib.speclib",
+        fasta="/path/to/fasta.fasta",
+        mzml=["/path/to/file.mzML"],
+        fdr_thresh=fdr_thresh,
+        config="/path/to/config.pythiaConfig",
+        results_dir=results_dir,
+    )
+
+    params = _configure_output(
+        params,
+        fdr_thresh=fdr_thresh,
+        results_dir=results_dir,
+    )
+
     assert params.output.qval_thresh == (fdr_thresh or 1.0)
-    assert params.peptide_output.location == str(
-        tmp_path / "results" / "scry_peptides"
+    assert params.output.location == str(tmp_path / "results" / "scry-results")
+
+
+@pytest.mark.parametrize("get_params", [_to_libfree_params, _to_mbr_params])
+@pytest.mark.parametrize("fdr_thresh", [None, 0.01, 0.05])
+@pytest.mark.parametrize(
+    "backend", ["combined", "unknown_backend", _get_output_backend("combined")]
+)
+def test_unknown_output_overrides(tmp_path, get_params, fdr_thresh, backend):
+    results_dir = str(tmp_path / "results")
+
+    params = _to_libfree_params(
+        library="/path/to/lib.speclib",
+        fasta="/path/to/fasta.fasta",
+        mzml=["/path/to/file.mzML"],
+        fdr_thresh=fdr_thresh,
+        config="/path/to/config.pythiaConfig",
+        results_dir=results_dir,
     )
-    assert params.protein_output.location == str(
-        tmp_path / "results" / "scry_proteins"
+
+    params = _configure_output(
+        params,
+        fdr_thresh=fdr_thresh,
+        results_dir=results_dir,
+        overrides={"output": {"backend": backend}},
     )
+
+    assert params.output.backend == backend
+    assert params.output.qval_thresh == (fdr_thresh or 1.0)
+    assert params.output.location == str(tmp_path / "results" / "scry-results")

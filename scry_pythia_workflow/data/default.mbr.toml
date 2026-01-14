@@ -40,7 +40,7 @@ subset_size = 20000
 [library.output]
 backend = 'write_library'
 include_decoys = true
-location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/pythia_lib-mbr.tsv'
+location = '/tmp/scry-output-library.tsv'
 peptide_normalizer = false
 qval_thresh = 0.01
 spectra_backend = 'pythia'
@@ -48,23 +48,20 @@ use_irt = true
 
 [library.search]
 backend = 'pythia'
-config = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/pythia_config.pythiaConfig'
-fasta = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
-library = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Libraries/20250501_NR_9606_lib.predicted.speclib'
-location = ['/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep01.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep02.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep03.mzML']
-output_location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/pythia_firstpass_results/'
+config = '/tmp/fake.pythiaConfig'
+fasta = '/tmp/fake.fasta'
+library = '/tmp/fake.tsv'
+location = []
+output_location = '/tmp/pythia-firstpass-results/'
 reuse_existing = false
 scoring = 'nn'
 use_irt = true
 
 [output]
-backend = 'write_parquet'
+backend = 'combined'
 include_decoys = true
 mode = 'overwrite'
 qval_thresh = 1.0
-
-[peptide_output]
-location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/scry_peptides/'
 
 [peptide_quant]
 backend = 'basic'
@@ -77,7 +74,7 @@ density_thresh = 0.8
 qval_thresh = 0.01
 
 [proffer]
-fasta_uri = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
+fasta_uri = '/tmp/fake.fasta'
 heuristic = 'nsp'
 qvalue_threshold = 0.01
 reannotate = true
@@ -86,9 +83,6 @@ reannotate = true
 decoy_accession_prefix = 'DECOY_'
 decoy_sequence_column = 'PeptideStringWithModsDecoyOrigin'
 reannotate_decoys = true
-
-[protein_output]
-location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/scry_proteins/'
 
 [protein_rollup]
 backend = 'directlfq'
@@ -104,10 +98,10 @@ score_column = 'nsp'
 
 [search]
 backend = 'pythia'
-config = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/pythia_config.pythiaConfig'
-fasta = '/data/Desktop/PythiaTestFiles/CoonHourProteome/Fasta/20250501_9606_1ProtPerGene.fasta'
-location = ['/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep01.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep02.mzML', '/data/Desktop/PythiaTestFiles/CoonHourProteome/mzML_15/20231206_HAP1_1ug_15min_DIA_2Th_5e4_3p5ms_rep03.mzML']
-output_location = '/data/Desktop/PythiaTestFiles/CoonHourProteome/CoonHourProteome_15_0_mbr/pythia_results/'
+config = '/tmp/fake.pythiaConfig'
+fasta = '/tmp/fake.fasta'
+location = []
+output_location = '/tmp/pythia-search-results/'
 reuse_existing = false
 scoring = 'nn'
 use_irt = true
