@@ -105,6 +105,8 @@ def pythia(
         results_dir=results_dir,
     )
 
+    params = _configure_output(params, fdr_thresh, results_dir)
+
     params = _merge_recursive(params, kwargs)
 
     if overrides:
@@ -161,11 +163,6 @@ def _to_mbr_params(
         params.proffer.qvalue_threshold = fdr_thresh
         params.protein_rollup.qvalue_threshold = fdr_thresh
 
-    params.peptide_output.location = str(results_path / "scry_peptides")
-    params.protein_output.location = str(results_path / "scry_proteins")
-    if fdr_thresh is not None:
-        params.output.qval_thresh = fdr_thresh
-
     return params
 
 
@@ -198,8 +195,15 @@ def _to_libfree_params(
         params.proffer.qvalue_threshold = fdr_thresh
         params.protein_rollup.qvalue_threshold = fdr_thresh
 
+    return params
+
+
+def _configure_output(params: _Mapping[str, _Any], fdr_thresh, results_dir):
+    params = _dotdict(params)
+
     params.peptide_output.location = str(_Path(results_dir) / "scry_peptides")
     params.protein_output.location = str(_Path(results_dir) / "scry_proteins")
+
     if fdr_thresh is not None:
         params.output.qval_thresh = fdr_thresh
 
