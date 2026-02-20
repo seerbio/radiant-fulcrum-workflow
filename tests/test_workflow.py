@@ -279,7 +279,7 @@ def test_to_mbr_params(tmp_path, mzml, fdr_thresh):
 def test_configure_output(tmp_path, get_params, fdr_thresh):
     results_dir = str(tmp_path / "results")
 
-    params = _to_libfree_params(
+    params = get_params(
         library="/path/to/lib.speclib",
         fasta="/path/to/fasta.fasta",
         mzml=["/path/to/file.mzML"],
@@ -308,7 +308,7 @@ def test_configure_output(tmp_path, get_params, fdr_thresh):
 def test_unknown_output_overrides(tmp_path, get_params, fdr_thresh, backend):
     results_dir = str(tmp_path / "results")
 
-    params = _to_libfree_params(
+    params = get_params(
         library="/path/to/lib.speclib",
         fasta="/path/to/fasta.fasta",
         mzml=["/path/to/file.mzML"],

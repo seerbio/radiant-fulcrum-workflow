@@ -11,6 +11,12 @@ from radiant_fulcrum_workflow.cli import _check_config
         "config.radiantConfig",
         "/path/to/config.radiantConfig",
         "s3://bucket/config.radiantConfig",
+        "config.toml",
+        "/path/to/config.toml",
+        "s3://bucket/config.toml",
+        "config.pythiaConfig",
+        "/path/to/config.pythiaConfig",
+        "s3://bucket/config.pythiaConfig",
     ],
 )
 def test_check_config_valid(uri):
@@ -23,9 +29,9 @@ def test_check_config_valid(uri):
 @pytest.mark.parametrize(
     "uri",
     [
-        "config.toml",
-        "/path/to/config.toml",
-        "s3://bucket/config.toml",
+        "config.invalid",
+        "/path/to/config.invalid",
+        "s3://bucket/config.invalid",
         "",
         "\n",
         "\n.\n",
