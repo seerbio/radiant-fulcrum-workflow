@@ -1,42 +1,42 @@
-# Pythia workflow for Scry
+# Radiant DIA workflow plugin for Fulcrum Pipeline
 
-This plugin permits running Pythia searches with straightforward configuration.
+This plugin permits running Radiant DIA™ searches with straightforward configuration.
 Many key choices are made for the user to simplify the experience.
 
 ## Installation  
 
-This library requires Python 3.8+ and can be installed with pip:  
+This library requires Python 3.10+ and can be installed with pip:  
 
 ```shell
-pip install 'scry-pythia-workflow[local]'
+pip install 'radiant-fulcrum-workflow[local]'
 ```
 
 ## Basic Usage  
 
-After [installation](#installation), you can directly run the `pythia_scry` command from the terminal:
+After [installation](#installation), you can directly run the `radiant_fulcrum` command from the terminal:
 
 ```shell
-pythia_scry --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.pythiaConfig file1.mzML file2.mzML
+radiant_fulcrum --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.radiantConfig file1.mzML file2.mzML
 ```
 
 For a full list of arguments, run:
 
 ```shell
-pythia_scry --help
+radiant_fulcrum --help
 ```
 
-## Advanced Usage with Scry
+## Advanced Usage in the Fulcrum Pipeline
 
-This package provides plugins for [Scry](https://github.com/seerbio/scry/).
+This package provides plugins for [Fulcrum Pipeline™](https://github.com/seerbio/fulcrum/).
 
 After [installation](#installation) you may use the
-following Scry parameters:
+following parameters:
 
 ```toml
-workflow = "pythia"
+workflow = "radiant"
 library = "/path/to/library.tsv"
 fasta = "/path/to/database.fasta"
-config = "/path/to/config.pythiaConfig"
+config = "/path/to/config.radiantConfig"
 
 mzml = [
 "file1.mzML",

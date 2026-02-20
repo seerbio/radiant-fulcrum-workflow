@@ -5,13 +5,13 @@ import toml
 from dotdict import dotdict
 from pathlib import Path
 
-from scry.output import get_backend as _get_output_backend
+from fulcrum.output import get_backend as _get_output_backend
 
-from scry_pythia_workflow.workflow import (
+from radiant_fulcrum_workflow.workflow import (
     _check_or_create_results_dir,
     _check_or_update_config,
     _configure_output,
-    _get_default_pythia_config,
+    _get_default_radiant_config,
     _to_libfree_params,
     _to_mbr_params,
 )
@@ -122,7 +122,7 @@ def test_default_config(tmp_path, threads, fdr):
     config_path = Path(result)
 
     assert config_path.exists()
-    assert config_path == (results_dir / "config.pythiaConfig")
+    assert config_path == (results_dir / "config.radiantConfig")
 
     with config_path.open("r") as f:
         config = toml.load(f, dotdict)
@@ -137,9 +137,9 @@ def test_default_config(tmp_path, threads, fdr):
 
 @pytest.fixture()
 def custom_config(tmp_path) -> str:
-    default_config = _get_default_pythia_config()
+    default_config = _get_default_radiant_config()
 
-    p = tmp_path / "config.pythiaConfig"
+    p = tmp_path / "config.radiantConfig"
 
     with p.open("w") as f:
         toml.dump(default_config, f)
@@ -180,7 +180,7 @@ def test_custom_config(tmp_path, custom_config, threads, fdr):
     config_path = Path(result)
 
     assert config_path.exists()
-    assert config_path == (results_dir / "config.pythiaConfig")
+    assert config_path == (results_dir / "config.radiantConfig")
 
     with config_path.open("r") as f:
         config = toml.load(f, dotdict)
@@ -208,7 +208,7 @@ def test_to_libfree_params(tmp_path, mzml, fdr_thresh):
         fasta="/path/to/fasta.fasta",
         mzml=mzml,
         fdr_thresh=fdr_thresh,
-        config="/path/to/config.pythiaConfig",
+        config="/path/to/config.radiantConfig",
         results_dir=results_dir,
     )
 
@@ -217,9 +217,9 @@ def test_to_libfree_params(tmp_path, mzml, fdr_thresh):
     assert params.search.location == (
         mzml if isinstance(mzml, list) else [mzml]
     )
-    assert params.search.config == "/path/to/config.pythiaConfig"
+    assert params.search.config == "/path/to/config.radiantConfig"
     assert params.search.output_location == str(
-        tmp_path / "results" / "pythia_results"
+        tmp_path / "results" / "radiant-results"
     )
 
     assert params.proffer.fasta_uri == "/path/to/fasta.fasta"
@@ -243,7 +243,7 @@ def test_to_mbr_params(tmp_path, mzml, fdr_thresh):
         fasta="/path/to/fasta.fasta",
         mzml=mzml,
         fdr_thresh=fdr_thresh,
-        config="/path/to/config.pythiaConfig",
+        config="/path/to/config.radiantConfig",
         results_dir=results_dir,
     )
 
@@ -252,20 +252,20 @@ def test_to_mbr_params(tmp_path, mzml, fdr_thresh):
     assert params.library.search.library == "/path/to/lib.speclib"
     assert params.library.search.fasta == "/path/to/fasta.fasta"
     assert params.library.search.location == expected_mzml
-    assert params.library.search.config == "/path/to/config.pythiaConfig"
+    assert params.library.search.config == "/path/to/config.radiantConfig"
     assert params.library.search.output_location == str(
-        tmp_path / "results" / "pythia_firstpass_results"
+        tmp_path / "results" / "radiant-firstpass-results"
     )
     assert params.library.output.location == str(
-        tmp_path / "results" / "pythia_lib-mbr.tsv"
+        tmp_path / "results" / "fulcrum-mbr-library.tsv"
     )
     assert params.library.output.qval_thresh == (fdr_thresh or 0.01)
 
     assert params.search.fasta == "/path/to/fasta.fasta"
     assert params.search.location == expected_mzml
-    assert params.search.config == "/path/to/config.pythiaConfig"
+    assert params.search.config == "/path/to/config.radiantConfig"
     assert params.search.output_location == str(
-        tmp_path / "results" / "pythia_results"
+        tmp_path / "results" / "radiant-results"
     )
 
     assert params.proffer.fasta_uri == "/path/to/fasta.fasta"
@@ -284,7 +284,7 @@ def test_configure_output(tmp_path, get_params, fdr_thresh):
         fasta="/path/to/fasta.fasta",
         mzml=["/path/to/file.mzML"],
         fdr_thresh=fdr_thresh,
-        config="/path/to/config.pythiaConfig",
+        config="/path/to/config.radiantConfig",
         results_dir=results_dir,
     )
 
@@ -295,7 +295,9 @@ def test_configure_output(tmp_path, get_params, fdr_thresh):
     )
 
     assert params.output.qval_thresh == (fdr_thresh or 1.0)
-    assert params.output.location == str(tmp_path / "results" / "scry-results")
+    assert params.output.location == str(
+        tmp_path / "results" / "fulcrum-results"
+    )
 
 
 @pytest.mark.parametrize("get_params", [_to_libfree_params, _to_mbr_params])
@@ -311,7 +313,7 @@ def test_unknown_output_overrides(tmp_path, get_params, fdr_thresh, backend):
         fasta="/path/to/fasta.fasta",
         mzml=["/path/to/file.mzML"],
         fdr_thresh=fdr_thresh,
-        config="/path/to/config.pythiaConfig",
+        config="/path/to/config.radiantConfig",
         results_dir=results_dir,
     )
 
@@ -324,4 +326,6 @@ def test_unknown_output_overrides(tmp_path, get_params, fdr_thresh, backend):
 
     assert params.output.backend == backend
     assert params.output.qval_thresh == (fdr_thresh or 1.0)
-    assert params.output.location == str(tmp_path / "results" / "scry-results")
+    assert params.output.location == str(
+        tmp_path / "results" / "fulcrum-results"
+    )

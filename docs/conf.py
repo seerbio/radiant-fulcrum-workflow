@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Scry Pythia Workflow"
+project = "Radiant DIA Workflow for "
 copyright = "2025, Seer, Inc."
 author = "Seer, Inc."
 
@@ -25,7 +25,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 language = "en"
 
-autoapi_dirs = ["../scry_pythia_workflow"]
+autoapi_dirs = ["../radiant_fulcrum_workflow"]
 autoapi_options = [
     "members",
     "undoc-members",

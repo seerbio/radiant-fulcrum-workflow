@@ -1,8 +1,8 @@
-Docs for ``scry_pythia_workflow``
+Docs for ``radiant_fulcrum_workflow``
 ==================
 
-This project provides a simplified workflow for running Pythia within
-the Scry scalable proteomics analysis framework.
+This project provides a simplified workflow for running Radiant DIA™ within
+the Fulcrum Pipeline™ scalable proteomics analysis framework.
 
 Getting Started
 ---------------
@@ -11,34 +11,34 @@ This library requires Python 3.8+ and can be installed with pip:
 
 .. code :: shell
 
-    pip install 'scry-pythia-workflow[local]'
+    pip install 'radiant-fulcrum-workflow[local]'
 
-You can then directly run the ``pythia_scry`` command from the terminal:
+You can then directly run the ``radiant_fulcrum`` command from the terminal:
 
 .. code :: shell
 
-    pythia_scry --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.pythiaConfig file1.mzML file2.mzML
+    radiant_fulcrum --library /path/to/library.tsv --fasta /path/to/database.fasta --config /path/to/config.radiantConfig file1.mzML file2.mzML
 
 For a full list of arguments, run:
 
 .. code :: shell
 
-    pythia_scry --help
+    radiant_fulcrum --help
 
-Scry Workflow
+Fulcrum Pipeline Workflow
 -------------
 
-In addition to the ``pythia_scry`` command, this package provides a Scry workflow
-that can be run with the ``scry`` command. You must provide appropriate parameters
+In addition to the ``radiant_fulcrum`` command, this package provides a workflow
+that can be run with the ``fulcrum`` command. You must provide appropriate parameters
 in TOML or JSON format. For example:
 
 .. code :: shell
 
-    scry -v --param-toml '
-    workflow = "pythia"
+    fulcrum -v --param-toml '
+    workflow = "radiant"
     library = "/path/to/library.tsv"
     fasta = "/path/to/database.fasta"
-    config = "/path/to/config.pythiaConfig"
+    config = "/path/to/config.radiantConfig"
 
     mzml = [
         "file1.mzML",
@@ -46,7 +46,7 @@ in TOML or JSON format. For example:
     ]
     '
 
-For a full list of supported parameters, see :py:func:`scry_pythia_workflow.workflow.pythia`.
+For a full list of supported parameters, see :py:func:`radiant_fulcrum_workflow.workflow.radiant`.
 
 Contents
 ========

@@ -2,15 +2,15 @@ import pytest
 
 import click
 
-from scry_pythia_workflow.cli import _check_config
+from radiant_fulcrum_workflow.cli import _check_config
 
 
 @pytest.mark.parametrize(
     "uri",
     [
-        "config.pythiaConfig",
-        "/path/to/config.pythiaConfig",
-        "s3://bucket/config.pythiaConfig",
+        "config.radiantConfig",
+        "/path/to/config.radiantConfig",
+        "s3://bucket/config.radiantConfig",
     ],
 )
 def test_check_config_valid(uri):

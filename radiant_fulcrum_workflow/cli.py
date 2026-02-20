@@ -1,5 +1,5 @@
 """
-CLI for Scry+Pythia search
+CLI for Radiant DIA + Fulcrum Pipeline
 """
 
 import logging
@@ -10,25 +10,29 @@ from typing import (
 import click
 import toml
 
-from scry.cli import main as scry_main
+from fulcrum.cli import main as fulcrum_main
 
 _logger = logging.getLogger(__name__)
 
 
 def _check_config(ctx, param, value):
     """
-    Callback to check that the config file is a valid Pythia config.
+    Callback to check that the config file is a valid config.
     """
     if value is not None:
-        if not value.endswith(".pythiaConfig"):
-            raise click.BadParameter("extension must be `.pythiaConfig`")
+        if not (
+            value.endswith(".radiantConfig")
+            or value.endswith(".toml")
+            or value.endswith(".pythiaConfig")
+        ):
+            raise click.BadParameter("Unsupported config file extension")
     return value
 
 
 @click.command(
-    name="pythia_scry",
+    name="radiant_fulcrum",
     help="""
-    CLI for running Pythia within the Scry search pipeline.
+    CLI for running Radiant DIA within the Fulcrum Pipeline.
     """,
 )
 @click.option(
@@ -51,7 +55,7 @@ def _check_config(ctx, param, value):
     required=False,
     default=None,
     callback=_check_config,
-    help="URI of a Pythia configuration file (TOML format).",
+    help="URI of a Radiant DIA configuration file (TOML format).",
     metavar="URI",
 )
 @click.option(
@@ -60,7 +64,7 @@ def _check_config(ctx, param, value):
     is_flag=True,
     type=bool,
     default=False,
-    help="Whether to run match-between-runs (MBR) after searching with Pythia. Default: --libfree.",
+    help="Whether to run match-between-runs (MBR) after searching with Radiant DIA. Default: --libfree.",
 )
 @click.option(
     "--fdr-thresh",
@@ -76,7 +80,7 @@ def _check_config(ctx, param, value):
     type=int,
     required=False,
     default=0,
-    help="Number of threads to use when running Pythia. Default: 0 (auto-detect).",
+    help="Number of threads to use when running Radiant DIA. Default: 0 (auto-detect).",
     metavar="THREADS",
 )
 @click.option(
@@ -123,7 +127,7 @@ def main(
     quiet,
 ):
     """
-    CLI for running Pythia within the Scry search pipeline.
+    CLI for running Radiant DIA within the Fulcrum Pipeline.
     """
 
     params_dict = _to_parameters(
@@ -138,9 +142,9 @@ def main(
     )
 
     param_toml = toml.dumps(params_dict)
-    _logger.debug("Will run Scry with parameters:\n%s", param_toml)
+    _logger.debug("Will run Fulcrum with parameters:\n%s", param_toml)
 
-    scry_main.callback(
+    fulcrum_main.callback(
         param_toml=param_toml,
         verbose=verbose,
         quiet=quiet,
@@ -158,7 +162,7 @@ def _to_parameters(
     mzml_files: _Tuple[str],
 ):
     """
-    Compute parameters to pass to scry based on CLI arguments.
+    Compute parameters to pass to Fulcrum based on CLI arguments.
     """
     return dict(
         library=library,
@@ -169,7 +173,7 @@ def _to_parameters(
         threads=threads,
         results_dir=results_dir,
         mzml=mzml_files,
-        workflow="pythia",
+        workflow="radiant",
         spark_config={
             # Enhancement: allow master to be set via CLI, to allow core count control or remote cluster
             "spark.master": "local[*]",

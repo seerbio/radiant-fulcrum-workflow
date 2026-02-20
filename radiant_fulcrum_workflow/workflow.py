@@ -25,16 +25,14 @@ from wheely.mammoth.proteins import (
     ProteinDataset as _ProteinDataset,
 )
 
-from scry.output import get_backend as _get_output_backend
+from fulcrum.output import get_backend as _get_output_backend
 
-from scry.workflow.mbr import mbr_workflow as _mbr_workflow
-from scry.workflow.v1 import scry_v1 as _v1_workflow
-from scry.workflow.registry import get_workflow as _get_workflow
+from fulcrum.workflow.registry import get_workflow as _get_workflow
 
 _logger = _logging.getLogger(__name__)
 
 
-def pythia(
+def radiant(
     library: str,
     fasta: str,
     mzml: _Union[str, _Iterable[str]],
@@ -48,13 +46,13 @@ def pythia(
     **kwargs,
 ) -> _Tuple[_PsmDataset, _ProteinDataset]:
     """
-    Workflow for running Pythia within Scry.
+    Workflow for running Radiant DIA within the Fulcrum Pipeline.
 
-    To use, call ``scry.scry(workflow="pythia")`` or run ``scry`` using the following TOML:
+    To use, call ``fulcrum.fulcrum(workflow="radiant")`` or run ``fulcrum`` using the following TOML:
 
     .. code:: toml
 
-        workflow = "pythia"
+        workflow = "radiant"
 
     Parameters
     ----------
@@ -70,12 +68,12 @@ def pythia(
         Note: if unspecified the default value (0.01) will be used for all workflow steps, but output will
         be written unfiltered.
     config : str, optional
-        URI of a Pythia configuration file (TOML format). If ``None``, default
+        URI of a Radiant DIA configuration file (TOML format). If ``None``, default
         configuration will be used.
     mbr : bool, optional
         Whether to run match-between-runs (MBR) or single-pass "library-free" workflow.
     threads : int, optional
-        Number of threads to use when running Pythia. Default: 0 (auto-detect).
+        Number of threads to use when running Radaint DIA. Default: 0 (auto-detect).
     results_dir : str, optional
         Directory to write intermediate and final results to. If ``None``, a folder will be
         created in the current working directory.
@@ -119,7 +117,7 @@ def pythia(
     params = _merge_recursive(params, overrides, _deepcopy_dotdict)
 
     _logger.debug(
-        "Generated Pythia workflow parameters:\n%s", _toml.dumps(params)
+        "Generated Fulcrum workflow parameters:\n%s", _toml.dumps(params)
     )
 
     workflow = _get_workflow(params.pop("workflow"))
@@ -152,16 +150,18 @@ def _to_mbr_params(
     params.library.search.location = mzml
     params.library.search.config = config
     params.library.search.output_location = str(
-        results_path / "pythia_firstpass_results"
+        results_path / "radiant-firstpass-results"
     )
-    params.library.output.location = str(results_path / "pythia_lib-mbr.tsv")
+    params.library.output.location = str(
+        results_path / "fulcrum-mbr-library.tsv"
+    )
     if fdr_thresh is not None:
         params.library.output.qval_thresh = fdr_thresh
 
     params.search.fasta = fasta
     params.search.location = mzml
     params.search.config = config
-    params.search.output_location = str(results_path / "pythia_results")
+    params.search.output_location = str(results_path / "radiant-results")
 
     params.proffer.fasta_uri = fasta
 
@@ -194,7 +194,7 @@ def _to_libfree_params(
     params.search.fasta = fasta
     params.search.location = mzml
     params.search.config = config
-    params.search.output_location = str(_Path(results_dir) / "pythia_results")
+    params.search.output_location = str(_Path(results_dir) / "radiant-results")
 
     params.proffer.fasta_uri = fasta
     if fdr_thresh is not None:
@@ -246,29 +246,29 @@ def _configure_output(
 
     if is_backend(combined_backends):
         # We will write only a single combined output dataset; set a single location
-        params.output.location = str(_Path(results_dir) / "scry-results")
+        params.output.location = str(_Path(results_dir) / "fulcrum-results")
     elif is_backend(separate_backends):
         # We will write separate outputs for PSMs and proteins
         params.peptide_output.location = str(
-            _Path(results_dir) / "scry_peptides"
+            _Path(results_dir) / "fulcrum-peptides"
         )
         params.protein_output.location = str(
-            _Path(results_dir) / "scry_proteins"
+            _Path(results_dir) / "fulcrum-proteins"
         )
     elif is_backend(lib_backends):
         # This is not recommended; log a warning and configure a location (unless overridden)
         if "location" in overrides.get("output", {}):
             _logger.warning(
-                "Output backend 'write_library' is not recommended for Pythia workflow! "
+                "Output backend `write_library` is not recommended for `radiant` workflow! "
                 "Proceeding with user-specified output location."
             )
         else:
             _logger.warning(
-                "Output backend 'write_library' is not recommended for Pythia workflow! "
+                "Output backend `write_library` is not recommended for `radiant` workflow! "
                 "Proceeding with default output location."
             )
             params.output.location = str(
-                _Path(results_dir) / "scry-output-library.tsv"
+                _Path(results_dir) / "fulcrum-output-library.tsv"
             )
     else:
         # Unknown backend; log a warning and set a single location
@@ -282,7 +282,9 @@ def _configure_output(
                 "Unknown output backend '%s'; setting a default output location",
                 output_backend,
             )
-            params.output.location = str(_Path(results_dir) / "scry-results")
+            params.output.location = str(
+                _Path(results_dir) / "fulcrum-results"
+            )
 
     return params
 
@@ -362,9 +364,9 @@ def _check_or_update_config(
     Parameters
     ----------
     config_uri : str|None
-        URI of a Pythia configuration file (TOML format). If ``None``, a default configuration will be used.
+        URI of a Radiant DIA configuration file (TOML format). If ``None``, a default configuration will be used.
     threads : int|None
-        Number of threads to use when running Pythia. If ``None``, no change will be made to the configuration.
+        Number of threads to use when running Radiant DIA. If ``None``, no change will be made to the configuration.
     fdr : float|None
         FDR threshold (between 0 and 1) used for filtering PSMs, Precursors, and PGs. If ``None``, no change will be
         made to the configuration.
@@ -372,7 +374,7 @@ def _check_or_update_config(
         Directory to write the updated configuration file to.
     """
     if config_uri is None:
-        config = _get_default_pythia_config()
+        config = _get_default_radiant_config()
     else:
         config_path = _Path(config_uri)
         if not config_path.exists():
@@ -383,7 +385,8 @@ def _check_or_update_config(
 
     _set_config_fields(config, threads, fdr)
 
-    newconfig = _Path(results_dir) / "config.pythiaConfig"
+    # TODO: what if newconfig is the same file as config_path? We should check for this and avoid writing if so -- raise?
+    newconfig = _Path(results_dir) / "config.radiantConfig"
     with newconfig.open("w") as f:
         _toml.dump(config, f)
 
@@ -399,12 +402,12 @@ def _set_config_fields(config, threads, fdr):
         )
 
 
-def _get_default_pythia_config():
-    return _read_default_toml("default.pythiaConfig")
+def _get_default_radiant_config():
+    return _read_default_toml("default.radiantConfig")
 
 
 def _read_default_toml(fname) -> _deepcopy_dotdict:
-    loc = _resource_files("scry_pythia_workflow") / "data" / fname
+    loc = _resource_files("radiant_fulcrum_workflow") / "data" / fname
 
     with loc.open("r") as f:
         params = _toml.load(f, _deepcopy_dotdict)

@@ -5,8 +5,8 @@
 1. Clone the repository
 
     ```shell
-    git clone git@github.com:seerbio/scry-pythia-workflow.git
-    cd scry-pythia-workflow
+    git clone git@github.com:seerbio/radiant-fulcrum-workflow.git
+    cd radiant-fulcrum-workflow
     ```
 
     Alternatively, create a fork through GitHub and clone that repository.
