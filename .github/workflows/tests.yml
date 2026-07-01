@@ -13,11 +13,10 @@ on:
 
 jobs:
   tests:
-    runs-on: [self-hosted, X64]
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,11 +26,7 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
-        pip config unset global.index-url || true  # Ensure we don't have old CodeArtifact creds in pip config
-        python -m pip install --upgrade pip
-        python -m pip install flake8 wheel 'awscli>=1.18.83'
-        aws codeartifact login --tool pip --repository seer_ds --domain seer --domain-owner 718843040700 --region us-west-2
-        python -m pip install '.[dev]'
+        python -m pip install flake8 wheel '.[dev]'
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
