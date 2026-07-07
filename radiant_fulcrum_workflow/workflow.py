@@ -249,11 +249,11 @@ def _configure_output(
         params.output.location = str(_Path(results_dir) / "fulcrum-results")
     elif is_backend(separate_backends):
         # We will write separate outputs for PSMs and proteins
-        params.peptide_output.location = str(
-            _Path(results_dir) / "fulcrum-peptides"
+        params.setdefault("peptide_output", _deepcopy_dotdict()).location = (
+            str(_Path(results_dir) / "fulcrum-peptides")
         )
-        params.protein_output.location = str(
-            _Path(results_dir) / "fulcrum-proteins"
+        params.setdefault("protein_output", _deepcopy_dotdict()).location = (
+            str(_Path(results_dir) / "fulcrum-proteins")
         )
     elif is_backend(lib_backends):
         # This is not recommended; log a warning and configure a location (unless overridden)
