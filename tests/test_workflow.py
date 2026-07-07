@@ -12,6 +12,7 @@ from radiant_fulcrum_workflow.workflow import (
     _check_or_update_config,
     _configure_output,
     _get_default_radiant_config,
+    _merge_recursive,
     _to_libfree_params,
     _to_mbr_params,
 )
@@ -329,3 +330,39 @@ def test_unknown_output_overrides(tmp_path, get_params, fdr_thresh, backend):
     assert params.output.location == str(
         tmp_path / "results" / "fulcrum-results"
     )
+
+
+@pytest.mark.parametrize("get_params", [_to_libfree_params, _to_mbr_params])
+@pytest.mark.parametrize("fdr_thresh", [None, 0.01, 0.05])
+def test_separate_output_overrides(tmp_path, get_params, fdr_thresh):
+    results_dir = str(tmp_path / "results")
+    peptide_location = str(tmp_path / "custom-peptides")
+    protein_location = str(tmp_path / "custom-proteins")
+    overrides = {
+        "output": {"backend": "write_parquet"},
+        "peptide_output": {"location": peptide_location},
+        "protein_output": {"location": protein_location},
+    }
+
+    params = get_params(
+        library="/path/to/lib.speclib",
+        fasta="/path/to/fasta.fasta",
+        mzml=["/path/to/file.mzML"],
+        fdr_thresh=fdr_thresh,
+        config="/path/to/config.radiantConfig",
+        results_dir=results_dir,
+    )
+
+    params = _configure_output(
+        params,
+        fdr_thresh=fdr_thresh,
+        results_dir=results_dir,
+        overrides=overrides,
+    )
+
+    params = _merge_recursive(params, overrides, dotdict)
+
+    assert params.output.backend == "write_parquet"
+    assert params.output.qval_thresh == (fdr_thresh or 1.0)
+    assert params.peptide_output.location == peptide_location
+    assert params.protein_output.location == protein_location
